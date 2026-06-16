@@ -27,6 +27,9 @@ const getAllowedOrigins = (): string[] => {
 const isLocalDevOrigin = (origin: string): boolean =>
   /^https?:\/\/localhost(:\d+)?$/.test(origin);
 
+const isServerlessRuntime = (): boolean =>
+  Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT);
+
 export const createApp = () => {
   const app = express();
   const allowedOrigins = getAllowedOrigins();
@@ -55,12 +58,16 @@ export const createApp = () => {
 
   app.use(express.json());
 
-  if (!process.env.NETLIFY) {
-    const uploadsDir = path.join(
-      path.dirname(fileURLToPath(import.meta.url)),
-      "uploads"
-    );
-    app.use("/uploads", express.static(uploadsDir));
+  if (!isServerlessRuntime()) {
+    try {
+      const uploadsDir = path.join(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "uploads"
+      );
+      app.use("/uploads", express.static(uploadsDir));
+    } catch {
+      // import.meta.url is unavailable in bundled serverless builds
+    }
   }
 
   app.use("/api/users", userRoutes);

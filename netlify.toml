@@ -8,7 +8,12 @@
 [functions]
   node_bundler = "esbuild"
   external_node_modules = ["@prisma/client", ".prisma"]
-  included_files = ["prisma/schema.prisma", "node_modules/.prisma/**", "node_modules/@prisma/client/**"]
+  included_files = [
+    "dist/**",
+    "prisma/schema.prisma",
+    "node_modules/.prisma/**",
+    "node_modules/@prisma/client/**",
+  ]
 
 [[redirects]]
   from = "/*"

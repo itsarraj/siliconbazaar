@@ -4,6 +4,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const getUploadDir = (): string => {
+  if (process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT) {
+    throw new Error(
+      "Local uploads are not supported on serverless. Set IMAGEKIT_PRIVATE_KEY."
+    );
+  }
+
   const dirname = path.dirname(fileURLToPath(import.meta.url));
   return path.join(dirname, "../uploads/products");
 };
