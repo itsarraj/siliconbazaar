@@ -1,5 +1,6 @@
-# Prefer repo-root netlify.toml (base = "backend"). This file applies if Netlify base dir is set to backend.
+# SiliconBazaar API — monorepo deploy (backend only)
 [build]
+  base = "backend"
   command = "npm ci && npx prisma generate && npm run build && npx prisma migrate deploy"
   publish = "public"
   functions = "netlify/functions"
