@@ -1,8 +1,6 @@
 import cors from "cors";
 import express from "express";
 import morgan from "morgan";
-import path from "path";
-import { fileURLToPath } from "url";
 import { errorHandler, pageNotFound } from "./middlewares/error.js";
 
 import orderRoutes from "./routes/order.routes.js";
@@ -26,9 +24,6 @@ const getAllowedOrigins = (): string[] => {
 
 const isLocalDevOrigin = (origin: string): boolean =>
   /^https?:\/\/localhost(:\d+)?$/.test(origin);
-
-const isServerlessRuntime = (): boolean =>
-  Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT);
 
 export const createApp = () => {
   const app = express();
@@ -57,18 +52,6 @@ export const createApp = () => {
   }
 
   app.use(express.json());
-
-  if (!isServerlessRuntime()) {
-    try {
-      const uploadsDir = path.join(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "uploads"
-      );
-      app.use("/uploads", express.static(uploadsDir));
-    } catch {
-      // import.meta.url is unavailable in bundled serverless builds
-    }
-  }
 
   app.use("/api/users", userRoutes);
   app.use("/api/auth", authRoutes);
