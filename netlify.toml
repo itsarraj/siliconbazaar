@@ -1,7 +1,7 @@
 # SiliconBazaar API — monorepo deploy (backend only)
 [build]
   base = "backend"
-  command = "npm ci && npx prisma generate && npm run build && npx prisma migrate deploy"
+  command = "npm run netlify:build"
   publish = "public"
   functions = "netlify/functions"
 

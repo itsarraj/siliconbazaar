@@ -9,6 +9,7 @@
     "dev": "prisma generate && tsx watch index.ts",
     "setup": "prisma generate && prisma db push && tsx seeder.ts",
     "build": "tsc && node scripts/ensure-public.mjs",
+    "netlify:build": "node scripts/netlify-build.mjs",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
