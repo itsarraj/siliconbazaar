@@ -1,9 +1,9 @@
 import asyncHandler from "express-async-handler";
-import prisma from "../../lib/prisma.js";
+import { findOrderById, updateOrder } from "../../lib/repositories.js";
 import { serializeOrder } from "../../lib/serializers.js";
 
 const payOrder = asyncHandler(async (req, res) => {
-  const order = await prisma.order.findUnique({ where: { id: req.params.id } });
+  const order = await findOrderById(req.params.id);
 
   if (!order) {
     const message = "Order unavailable";
@@ -17,14 +17,7 @@ const payOrder = asyncHandler(async (req, res) => {
     throw new Error(message);
   }
 
-  const updatedOrder = await prisma.order.update({
-    where: { id: order.id },
-    data: { isPaymentDone: true },
-    include: {
-      items: true,
-      user: { select: { id: true, name: true, email: true } },
-    },
-  });
+  const updatedOrder = await updateOrder(order.id, { isPaymentDone: true });
 
   res.status(200).json(serializeOrder(updatedOrder));
 });

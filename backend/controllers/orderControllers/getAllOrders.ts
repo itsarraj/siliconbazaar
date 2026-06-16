@@ -1,17 +1,9 @@
 import asyncHandler from "express-async-handler";
-import prisma from "../../lib/prisma.js";
+import { findOrdersByUserId } from "../../lib/repositories.js";
 import { serializeOrder } from "../../lib/serializers.js";
 
 const getAllOrders = asyncHandler(async (req, res) => {
-  const orders = await prisma.order.findMany({
-    where: { userId: req.user!.id },
-    include: {
-      items: true,
-      user: { select: { id: true, name: true, email: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
+  const orders = await findOrdersByUserId(req.user!.id);
   res.status(200).json(orders.map(serializeOrder));
 });
 

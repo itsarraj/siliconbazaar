@@ -24,16 +24,4 @@ Copy values from backend/.env, then redeploy.
 }
 
 run("npm ci");
-run("npx prisma generate");
 run("npm run build");
-
-// DB was bootstrapped locally (db push / manual migrations). Netlify builds should not
-// mutate production schema — avoids Prisma P3005 on non-empty databases.
-if (process.env.NETLIFY) {
-  console.log(
-    "[netlify-build] Skipping prisma migrate deploy on Netlify. " +
-      "Apply new migrations locally with: npx prisma migrate deploy"
-  );
-} else {
-  run("npx prisma migrate deploy");
-}

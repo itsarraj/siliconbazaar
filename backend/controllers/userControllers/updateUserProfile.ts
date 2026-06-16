@@ -1,10 +1,10 @@
 import asyncHandler from "express-async-handler";
-import prisma from "../../lib/prisma.js";
+import { findUserById, updateUser } from "../../lib/repositories.js";
 import { hashPassword } from "../../util/password.js";
 import { serializeUser } from "../../lib/serializers.js";
 
 const updateUserProfile = asyncHandler(async (req, res) => {
-  const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+  const user = await findUserById(req.user!.id);
 
   if (!user) {
     const message = "User is unavailable";
@@ -18,13 +18,10 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     password?: string;
   };
 
-  const updatedUser = await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      name: name || user.name,
-      email: email || user.email,
-      ...(password ? { password: await hashPassword(password) } : {}),
-    },
+  const updatedUser = await updateUser(user.id, {
+    name: name || user.name,
+    email: email || user.email,
+    ...(password ? { password: await hashPassword(password) } : {}),
   });
 
   res.status(201).json(serializeUser(updatedUser));

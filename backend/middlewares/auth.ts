@@ -1,7 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
-import prisma from "../lib/prisma.js";
+import { findUserById } from "../lib/repositories.js";
+import type { SafeUser } from "../lib/types.js";
 
 interface JwtPayload {
   id: string;
@@ -16,24 +17,13 @@ const userAuth = asyncHandler(async (req, res, next) => {
         return;
       }
       const decoded = jwt.verify(token, process.env.SECRET as string) as JwtPayload;
-      const user = await prisma.user.findUnique({
-        where: { id: decoded.id },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          isAdmin: true,
-          authProvider: true,
-          googleId: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      });
+      const user = await findUserById(decoded.id);
       if (!user) {
         res.status(401).json({ message: "Unauthorized User Access" });
         return;
       }
-      req.user = user;
+      const { password: _password, ...safeUser } = user;
+      req.user = safeUser as SafeUser;
       next();
     } catch {
       const message = "Unauthorized User Access";

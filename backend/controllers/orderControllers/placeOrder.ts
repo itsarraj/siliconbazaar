@@ -1,5 +1,8 @@
 import asyncHandler from "express-async-handler";
-import prisma from "../../lib/prisma.js";
+import {
+  createOrderWithItems,
+  findAvailableProductsByIds,
+} from "../../lib/repositories.js";
 import { serializeOrder } from "../../lib/serializers.js";
 
 interface OrderProductInput {
@@ -20,9 +23,7 @@ const placeOrder = asyncHandler(async (req, res) => {
   }
 
   const productIds = [...new Set(products.map((item) => item.product))];
-  const dbProducts = await prisma.product.findMany({
-    where: { id: { in: productIds }, isAvailable: true },
-  });
+  const dbProducts = await findAvailableProductsByIds(productIds);
 
   if (dbProducts.length !== productIds.length) {
     const message = "One or more products are unavailable";
@@ -57,7 +58,7 @@ const placeOrder = asyncHandler(async (req, res) => {
       throw new Error(message);
     }
 
-    const price = Number(dbProduct.price);
+    const price = dbProduct.price;
     totalPrice += item.qty * price;
     orderItems.push({
       productId: dbProduct.id,
@@ -67,26 +68,7 @@ const placeOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  const order = await prisma.$transaction(async (tx) => {
-    for (const item of orderItems) {
-      await tx.product.update({
-        where: { id: item.productId },
-        data: { qtyInStock: { decrement: item.qty } },
-      });
-    }
-
-    return tx.order.create({
-      data: {
-        userId,
-        totalPrice,
-        items: { create: orderItems },
-      },
-      include: {
-        items: true,
-        user: { select: { id: true, name: true, email: true } },
-      },
-    });
-  });
+  const order = await createOrderWithItems(userId, totalPrice, orderItems);
 
   res.status(201).json(serializeOrder(order));
 });

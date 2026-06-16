@@ -1,9 +1,9 @@
 import asyncHandler from "express-async-handler";
-import prisma from "../../lib/prisma.js";
+import { createProduct } from "../../lib/repositories.js";
 import { uploadProductImage } from "../../services/uploadService.js";
 import { serializeProduct } from "../../lib/serializers.js";
 
-const createProduct = asyncHandler(async (req, res) => {
+const createProductHandler = asyncHandler(async (req, res) => {
   const userId = req.user!.id;
   const { name, price, qtyInStock } = req.body as {
     name: string;
@@ -23,17 +23,15 @@ const createProduct = asyncHandler(async (req, res) => {
     image.mimetype
   );
 
-  const product = await prisma.product.create({
-    data: {
-      userId,
-      name,
-      image: imageUrl,
-      price: Number(price),
-      qtyInStock: Number(qtyInStock) > 0 ? Number(qtyInStock) : 1,
-    },
+  const product = await createProduct({
+    userId,
+    name,
+    image: imageUrl,
+    price: Number(price),
+    qtyInStock: Number(qtyInStock) > 0 ? Number(qtyInStock) : 1,
   });
 
   res.status(200).json(serializeProduct(product));
 });
 
-export default createProduct;
+export default createProductHandler;

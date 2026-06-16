@@ -1,7 +1,10 @@
 import asyncHandler from "express-async-handler";
-import prisma from "../../lib/prisma.js";
+import {
+  createUser,
+  findUserByEmail,
+} from "../../lib/repositories.js";
 import getToken from "../../util/getToken.js";
-import { hashPassword, matchPassword } from "../../util/password.js";
+import { hashPassword } from "../../util/password.js";
 import { serializeUser } from "../../lib/serializers.js";
 
 const userRegister = asyncHandler(async (req, res) => {
@@ -11,20 +14,18 @@ const userRegister = asyncHandler(async (req, res) => {
     password: string;
   };
 
-  const userExists = await prisma.user.findUnique({ where: { email } });
+  const userExists = await findUserByEmail(email);
   if (userExists) {
     res.status(400).json({ message: "User exists" });
     return;
   }
 
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: await hashPassword(password),
-      isAdmin: false,
-      authProvider: "local",
-    },
+  const user = await createUser({
+    name,
+    email,
+    password: await hashPassword(password),
+    isAdmin: false,
+    authProvider: "local",
   });
 
   res.status(201).json({

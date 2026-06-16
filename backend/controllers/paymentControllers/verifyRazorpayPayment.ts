@@ -1,5 +1,5 @@
 import asyncHandler from "express-async-handler";
-import prisma from "../../lib/prisma.js";
+import { findOrderById, updateOrder } from "../../lib/repositories.js";
 import { verifyRazorpaySignature } from "../../util/verifyPayment.js";
 import { serializeOrder } from "../../lib/serializers.js";
 
@@ -30,7 +30,7 @@ const verifyRazorpayPayment = asyncHandler(async (req, res) => {
     throw new Error("Invalid payment signature");
   }
 
-  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  const order = await findOrderById(orderId);
 
   if (!order) {
     res.status(404);
@@ -47,17 +47,10 @@ const verifyRazorpayPayment = asyncHandler(async (req, res) => {
     throw new Error("Razorpay order mismatch");
   }
 
-  const updatedOrder = await prisma.order.update({
-    where: { id: order.id },
-    data: {
-      isPaymentDone: true,
-      paymentId: razorpayPaymentId,
-      razorpayOrderId,
-    },
-    include: {
-      items: true,
-      user: { select: { id: true, name: true, email: true } },
-    },
+  const updatedOrder = await updateOrder(order.id, {
+    isPaymentDone: true,
+    paymentId: razorpayPaymentId,
+    razorpayOrderId,
   });
 
   res.status(200).json(serializeOrder(updatedOrder));

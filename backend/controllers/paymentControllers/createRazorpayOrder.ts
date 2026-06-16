@@ -1,5 +1,5 @@
 import asyncHandler from "express-async-handler";
-import prisma from "../../lib/prisma.js";
+import { findOrderById, updateOrder } from "../../lib/repositories.js";
 import { getRazorpayClient, isRazorpayConfigured } from "../../util/razorpay.js";
 
 const createRazorpayOrder = asyncHandler(async (req, res) => {
@@ -15,7 +15,7 @@ const createRazorpayOrder = asyncHandler(async (req, res) => {
     throw new Error("Order ID is required");
   }
 
-  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  const order = await findOrderById(orderId);
 
   if (!order) {
     res.status(404);
@@ -32,7 +32,7 @@ const createRazorpayOrder = asyncHandler(async (req, res) => {
     throw new Error("Not authorized to pay for this order");
   }
 
-  const amountInPaise = Math.round(Number(order.totalPrice) * 100);
+  const amountInPaise = Math.round(order.totalPrice * 100);
 
   const razorpayOrder = await getRazorpayClient().orders.create({
     amount: amountInPaise,
@@ -44,10 +44,7 @@ const createRazorpayOrder = asyncHandler(async (req, res) => {
     },
   });
 
-  await prisma.order.update({
-    where: { id: order.id },
-    data: { razorpayOrderId: razorpayOrder.id },
-  });
+  await updateOrder(order.id, { razorpayOrderId: razorpayOrder.id });
 
   res.status(200).json({
     razorpayOrderId: razorpayOrder.id,

@@ -1,10 +1,10 @@
 import asyncHandler from "express-async-handler";
-import prisma from "../../lib/prisma.js";
+import { deleteUser, findUserById } from "../../lib/repositories.js";
 
 const deleteUserByAdmin = asyncHandler(async (req, res) => {
-  const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+  const user = await findUserById(req.params.id);
   if (user) {
-    await prisma.user.delete({ where: { id: user.id } });
+    await deleteUser(user.id);
     res.status(200).json({ message: "User removed" });
   } else {
     const message = "User unavailable";

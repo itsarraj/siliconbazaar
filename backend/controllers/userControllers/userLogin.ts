@@ -1,5 +1,5 @@
 import asyncHandler from "express-async-handler";
-import prisma from "../../lib/prisma.js";
+import { findUserByEmail } from "../../lib/repositories.js";
 import getToken from "../../util/getToken.js";
 import { matchPassword } from "../../util/password.js";
 import { serializeUser } from "../../lib/serializers.js";
@@ -7,7 +7,7 @@ import { serializeUser } from "../../lib/serializers.js";
 const userLogin = asyncHandler(async (req, res) => {
   const { email, password } = req.body as { email: string; password: string };
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await findUserByEmail(email);
 
   if (!user || !user.password) {
     const message =

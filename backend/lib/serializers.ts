@@ -1,16 +1,11 @@
-import type { Order, OrderItem, Product } from "@prisma/client";
-
-type OrderWithRelations = Order & {
-  items: OrderItem[];
-  user: { id: string; name: string; email: string };
-};
+import type { OrderWithRelations, Product } from "./types.js";
 
 export const serializeProduct = (product: Product) => ({
   _id: product.id,
   __v: 0,
   name: product.name,
   image: product.image,
-  price: Number(product.price),
+  price: product.price,
   qtyInStock: product.qtyInStock,
   isAvailable: product.isAvailable,
   user: product.userId,
@@ -33,7 +28,7 @@ export const serializeUser = (user: {
 export const serializeOrder = (order: OrderWithRelations) => ({
   _id: order.id,
   __v: 0,
-  totalPrice: Number(order.totalPrice),
+  totalPrice: order.totalPrice,
   isPaymentDone: order.isPaymentDone,
   razorpayOrderId: order.razorpayOrderId,
   paymentId: order.paymentId,
@@ -45,7 +40,7 @@ export const serializeOrder = (order: OrderWithRelations) => ({
   products: order.items.map((item) => ({
     _id: item.id,
     name: item.name,
-    price: Number(item.price),
+    price: item.price,
     product: item.productId,
     qty: item.qty,
   })),

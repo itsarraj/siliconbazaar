@@ -1,19 +1,8 @@
 import asyncHandler from "express-async-handler";
-import prisma from "../../lib/prisma.js";
+import { findUsersExcept } from "../../lib/repositories.js";
 
 const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await prisma.user.findMany({
-    where: { id: { not: req.user!.id } },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      isAdmin: true,
-      authProvider: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  const users = await findUsersExcept(req.user!.id);
 
   res.status(200).json(
     users.map((user) => ({

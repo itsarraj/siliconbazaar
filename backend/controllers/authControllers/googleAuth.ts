@@ -1,5 +1,10 @@
 import asyncHandler from "express-async-handler";
-import prisma from "../../lib/prisma.js";
+import {
+  createUser,
+  findUserByEmail,
+  findUserByGoogleId,
+  updateUser,
+} from "../../lib/repositories.js";
 import getToken from "../../util/getToken.js";
 import { serializeUser } from "../../lib/serializers.js";
 import {
@@ -17,35 +22,26 @@ export const findOrCreateGoogleUser = async (googleUser: {
   email: string;
   name: string;
 }) => {
-  const byGoogleId = await prisma.user.findUnique({
-    where: { googleId: googleUser.sub },
-  });
+  const byGoogleId = await findUserByGoogleId(googleUser.sub);
   if (byGoogleId) {
     return byGoogleId;
   }
 
-  const byEmail = await prisma.user.findUnique({
-    where: { email: googleUser.email.toLowerCase() },
-  });
+  const byEmail = await findUserByEmail(googleUser.email.toLowerCase());
   if (byEmail) {
-    return prisma.user.update({
-      where: { id: byEmail.id },
-      data: {
-        googleId: googleUser.sub,
-        authProvider: "google",
-        name: byEmail.name || googleUser.name,
-      },
+    return updateUser(byEmail.id, {
+      googleId: googleUser.sub,
+      authProvider: "google",
+      name: byEmail.name || googleUser.name,
     });
   }
 
-  return prisma.user.create({
-    data: {
-      name: googleUser.name,
-      email: googleUser.email.toLowerCase(),
-      googleId: googleUser.sub,
-      authProvider: "google",
-      isAdmin: false,
-    },
+  return createUser({
+    name: googleUser.name,
+    email: googleUser.email.toLowerCase(),
+    googleId: googleUser.sub,
+    authProvider: "google",
+    isAdmin: false,
   });
 };
 
