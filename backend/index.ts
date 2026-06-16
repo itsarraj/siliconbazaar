@@ -1,7 +1,7 @@
 import "dotenv/config";
+import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import express from "express";
 import { createApp } from "./app.js";
 
 const app = createApp();
