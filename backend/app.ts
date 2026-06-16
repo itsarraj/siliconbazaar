@@ -1,0 +1,78 @@
+import cors from "cors";
+import express from "express";
+import morgan from "morgan";
+import path from "path";
+import { fileURLToPath } from "url";
+import { errorHandler, pageNotFound } from "./middlewares/error.js";
+
+import orderRoutes from "./routes/order.routes.js";
+import authRoutes from "./routes/auth.routes.js";
+import paymentRoutes from "./routes/payment.routes.js";
+import productRoutes from "./routes/product.routes.js";
+import userRoutes from "./routes/user.routes.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const getAllowedOrigins = (): string[] => {
+  const origins = [
+    process.env.DEVELOPMENT_CLIENT_ORIGIN,
+    process.env.PRODUCTION_CLIENT_ORIGIN,
+  ].filter((value): value is string => Boolean(value));
+
+  return origins.length > 0 ? origins : ["http://localhost:3000"];
+};
+
+const isLocalDevOrigin = (origin: string): boolean =>
+  /^https?:\/\/localhost(:\d+)?$/.test(origin);
+
+export const createApp = () => {
+  const app = express();
+  const allowedOrigins = getAllowedOrigins();
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+        if (process.env.NODE_ENV === "development" && isLocalDevOrigin(origin)) {
+          callback(null, true);
+          return;
+        }
+        callback(null, false);
+      },
+      credentials: true,
+      methods: ["POST", "GET", "PUT", "DELETE", "OPTIONS"],
+    })
+  );
+
+  if (process.env.NODE_ENV === "development") {
+    app.use(morgan("dev"));
+  }
+
+  app.use(express.json());
+
+  if (!process.env.NETLIFY) {
+    app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+  }
+
+  app.use("/api/users", userRoutes);
+  app.use("/api/auth", authRoutes);
+  app.use("/api/products", productRoutes);
+  app.use("/api/orders", orderRoutes);
+  app.use("/api/payment", paymentRoutes);
+
+  app.get("/", (_req, res) => {
+    res.send("SiliconBazaar API is running");
+  });
+
+  app.get("/api/health", (_req, res) => {
+    res.json({ status: "ok", service: "siliconbazaar-api" });
+  });
+
+  app.use(pageNotFound);
+  app.use(errorHandler);
+
+  return app;
+};

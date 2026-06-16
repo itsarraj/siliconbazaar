@@ -1,0 +1,38 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-primary: #f59e0b;
+    --brand-accent: #06b6d4;
+    --surface: #0f1419;
+    --surface-elevated: #1a2332;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply font-sans antialiased bg-slate-950 text-slate-100;
+  }
+
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@layer components {
+  .brand-gradient-text {
+    @apply bg-gradient-to-r from-brand-400 via-brand-300 to-circuit-400 bg-clip-text text-transparent;
+  }
+
+  .circuit-card {
+    @apply rounded-xl border border-slate-800/80 bg-slate-900/60 backdrop-blur-sm transition-all duration-300 hover:border-brand-500/40 hover:shadow-lg hover:shadow-brand-500/5;
+  }
+}

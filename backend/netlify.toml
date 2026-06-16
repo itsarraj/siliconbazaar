@@ -1,0 +1,13 @@
+[build]
+  command = "npm ci && npx prisma generate && npm run build && npx prisma migrate deploy"
+  publish = "public"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["prisma/schema.prisma"]
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/server"
+  status = 200
