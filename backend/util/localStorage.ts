@@ -3,8 +3,10 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const UPLOAD_DIR = path.join(__dirname, "../uploads/products");
+const getUploadDir = (): string => {
+  const dirname = path.dirname(fileURLToPath(import.meta.url));
+  return path.join(dirname, "../uploads/products");
+};
 
 const mimeToExtension = (mimeType: string): string => {
   const map: Record<string, string> = {
@@ -31,11 +33,12 @@ export const saveLocalProductImage = async (
   fileName: string,
   mimeType: string
 ): Promise<string> => {
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
+  const uploadDir = getUploadDir();
+  await fs.mkdir(uploadDir, { recursive: true });
 
   const ext = path.extname(fileName) || mimeToExtension(mimeType);
   const uniqueName = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}${ext}`;
-  const filePath = path.join(UPLOAD_DIR, uniqueName);
+  const filePath = path.join(uploadDir, uniqueName);
 
   await fs.writeFile(filePath, buffer);
 

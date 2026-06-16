@@ -11,13 +11,15 @@ import paymentRoutes from "./routes/payment.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import userRoutes from "./routes/user.routes.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const normalizeOrigin = (origin: string): string => origin.replace(/\/$/, "");
 
 const getAllowedOrigins = (): string[] => {
   const origins = [
     process.env.DEVELOPMENT_CLIENT_ORIGIN,
     process.env.PRODUCTION_CLIENT_ORIGIN,
-  ].filter((value): value is string => Boolean(value));
+  ]
+    .filter((value): value is string => Boolean(value))
+    .map(normalizeOrigin);
 
   return origins.length > 0 ? origins : ["http://localhost:3000"];
 };
@@ -32,7 +34,7 @@ export const createApp = () => {
   app.use(
     cors({
       origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (!origin || allowedOrigins.includes(normalizeOrigin(origin))) {
           callback(null, true);
           return;
         }
@@ -54,7 +56,11 @@ export const createApp = () => {
   app.use(express.json());
 
   if (!process.env.NETLIFY) {
-    app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+    const uploadsDir = path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "uploads"
+    );
+    app.use("/uploads", express.static(uploadsDir));
   }
 
   app.use("/api/users", userRoutes);
